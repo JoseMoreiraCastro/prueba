@@ -8,7 +8,7 @@ import { IdiomaService } from 'src/idioma/idioma.service';
 interface ConnectedClients {
     [id:string]: {
        socket: Socket,
-       estudiante: Idioma
+       idioma: Idioma
     }
 }
 
@@ -23,12 +23,12 @@ export class MensajesWsService {
 
     async registerClient(client:Socket, name: string){
         console.log(this.idiomaService.prueba());
-        const estudiante =await  this.idiomaRepository.findOneBy({ nombre: name });
-        if (!estudiante) throw new Error('Idioma no encontrado');
-        if (!estudiante.estado) throw new Error('No activo');
+        const idioma =await  this.idiomaRepository.findOneBy({ nombre: name });
+        if (!idioma) throw new Error('Idioma no encontrado');
+        if (!idioma.estado) throw new Error('No activo');
 
         
-        this.connectedClients[client.id]= {socket:client, estudiante: estudiante};
+        this.connectedClients[client.id]= {socket:client, idioma: idioma};
     }
     removeClient(clientId:string){
         delete this.connectedClients[clientId];
@@ -39,6 +39,6 @@ export class MensajesWsService {
          return Object.keys(this.connectedClients);
     }
     getStudentFullName(id:string){
-        return this.connectedClients[id].estudiante.nombre;
+        return this.connectedClients[id].idioma.nombre;
     }
 }

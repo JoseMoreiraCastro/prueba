@@ -7,7 +7,7 @@ import { BadRequestException } from '@nestjs/common';
 @WebSocketGateway({cors: true})
 export class MensajesWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
-  listaDeUsuarios:string[]=['nemecio','prueba'];
+  listaDeUsuarios:string[]=['Jose Moreira','prueba'];
 
   @WebSocketServer() wss: Server;
 

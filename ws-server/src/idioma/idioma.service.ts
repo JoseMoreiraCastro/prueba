@@ -1,53 +1,70 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateIdiomaDto } from './dto/create-idioma.dto';
 import { UpdateIdiomaDto } from './dto/update-idioma.dto';
 import { Idioma } from './entities/idioma.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class IdiomaService {
 
-  private idioma: Idioma[]=[
-    {id:1, identificacion:'1', nombre:'Uno', estado:true},
-    {id:2, identificacion:'2', nombre:'Dos', estado:true},
-  ]
-  idiomas: (Idioma | typeof Idioma)[];
+  private readonly logger = new Logger('IdiomaService');
 
+  constructor( 
+    @InjectRepository(Idioma) 
+    private readonly idiomaRepository: Repository<Idioma>,
 
-  create(createIdiomaDto: CreateIdiomaDto) {
-    const idioma = new Idioma();
-    idioma.id=  Math.max( ... this.idioma.map(elemento => elemento.id),0 )+1 ;
-    idioma.nombre= createIdiomaDto.nombre;
-    this.idioma.push(idioma);
-    return Idioma;
+    ){}
+
+  
+  async create(createEstudianteDto: CreateIdiomaDto) {
+    try {
+      const idioma =  this.idiomaRepository.create(createEstudianteDto);
+      await this.idiomaRepository.save(idioma);
+      return idioma;
+    } catch (error) {
+      console.log(error)
+      if (error.code==='23505')
+        throw new BadRequestException(error.detail)
+      this.logger.error(error);
+      throw new InternalServerErrorException('Error no esperado')
+    }
+    
   }
 
-  findAll() : Idioma[] {
-    return this.idioma;
+  findAll() {
+    return this.idiomaRepository.find({});
   }
 
-  findOne(id: number) {
-    const idioma =  this.idioma.find(idioma=> idioma.id===id);
-    if (!idioma) throw new NotFoundException(`ID ${id} not found`)
-    return Idioma;
-  }
-
-  update(id: number, updateIdiomaDto: UpdateIdiomaDto) {
-    const { identificacion, nombre, estado   } = updateIdiomaDto;
-    const idioma = this.findOne(id);
-    if (nombre) idioma.nombre= nombre;
-    if (estado!= undefined) idioma.estado= estado;
-
-    this.idiomas =  this.idioma.map( elemento=> {
-      if (elemento.id===id) return idioma;
-      return elemento;
-    } )
-
+  async findOne(id: string) {
+    const idioma= await  this.idiomaRepository.findOneBy ({ id });
+    if (!idioma)
+      throw new NotFoundException(`Idioma ${id} no encontrado`);
     return idioma;
+
   }
 
-  remove(id: number) {
-    this.findOne(id);
-    this.idiomas =  this.idioma.filter(elemento=> elemento.id!== id);
+  async update(id: string, updateIdiomaDto: UpdateIdiomaDto) {
+    const idioma = await this.idiomaRepository.preload({
+      id: id,
+      ...updateIdiomaDto
+    });
+    if (!idioma) throw new NotFoundException(`Idioma ${id} no encontrado`)
+
+    try {
+      await  this.idiomaRepository.save(idioma)
+      return idioma;
+      
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
+
+  async remove(id: string) {
+    const idioma = await this.findOne(id);
+    await this.idiomaRepository.remove(idioma);
+
   }
   prueba():String[]{
     return ['uno','dos','tres'];

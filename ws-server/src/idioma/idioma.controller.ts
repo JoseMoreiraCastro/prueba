@@ -19,17 +19,17 @@ export class IdiomaController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.idiomaService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateIdiomaDto: UpdateIdiomaDto) {
-    return this.idiomaService.update(+id, updateIdiomaDto);
+    return this.idiomaService.update(id, updateIdiomaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.idiomaService.remove(+id);
+    return this.idiomaService.remove(id);
   }
 }
